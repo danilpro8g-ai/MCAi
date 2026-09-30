@@ -146,8 +146,10 @@ public class ChatMessageHandler {
      *   !heal                      — eat food if available
      *   !help                      — list commands
      */
-    private static String handleQuickCommand(String cmd, CompanionEntity companion, ServerPlayer player) {
-        String lower = cmd.toLowerCase();
+    public static String handleQuickCommand(String cmd, CompanionEntity companion, ServerPlayer player) {
+        String lower = com.apocscode.mcai.ai.RussianCommands.normalize(cmd);
+        String alias = com.apocscode.mcai.ai.RussianCommands.quick(lower);
+        if (alias != null) lower = alias;
 
         return switch (lower) {
             case "follow" -> {

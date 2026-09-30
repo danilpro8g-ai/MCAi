@@ -883,6 +883,25 @@ public class CommandParser {
     public static boolean tryParse(String message, ServerPlayer player, @Nullable CompanionEntity companion) {
         if (message == null || message.isBlank()) return false;
 
+        String quick = RussianCommands.quick(message);
+        if (quick != null && companion != null) {
+            respond(player, com.apocscode.mcai.network.ChatMessageHandler.handleQuickCommand(quick, companion, player));
+            return true;
+        }
+        RussianCommands.Gather gather = RussianCommands.gather(message);
+        if (gather != null) {
+            if (gather.error() != null) {
+                respond(player, gather.error());
+            } else {
+                JsonObject args = new JsonObject();
+                args.addProperty("block", gather.block());
+                args.addProperty("maxBlocks", gather.count());
+                executeToolAsync("gather_blocks", args, player, companion,
+                    "Задание: " + gather.block() + ", количество: " + gather.count() + ".");
+            }
+            return true;
+        }
+
         // Normalize: trim, collapse whitespace, strip trailing punctuation
         String msg = message.trim()
                 .replaceAll("\\s+", " ")
@@ -1399,7 +1418,7 @@ public class CommandParser {
             }
             JsonObject args = new JsonObject();
             args.addProperty("block", normalizeItemName(blockStr));
-            if (countStr != null) args.addProperty("count", Integer.parseInt(countStr));
+            if (countStr != null) args.addProperty("maxBlocks", Integer.parseInt(countStr));
             executeToolAsync("gather_blocks", args, player, companion,
                     "Gathering " + blockStr + "...");
             return true;

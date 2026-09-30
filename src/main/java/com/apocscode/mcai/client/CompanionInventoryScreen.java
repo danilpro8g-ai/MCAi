@@ -53,9 +53,9 @@ public class CompanionInventoryScreen extends AbstractContainerScreen<CompanionI
     protected void init() {
         super.init();
 
-        // "Chat" button in top-right corner of the GUI
+        // Component.translatable("ui.mcai.text_0").getString() button in top-right corner of the GUI
         this.addRenderableWidget(Button.builder(
-                Component.literal("Chat"),
+                Component.translatable("ui.mcai.text_0"),
                 btn -> {
                     CompanionEntity companion = this.menu.getCompanion();
                     if (companion != null && this.minecraft != null) {
@@ -80,19 +80,19 @@ public class CompanionInventoryScreen extends AbstractContainerScreen<CompanionI
         int btnStartX = this.leftPos + this.imageWidth - 110;
 
         stayBtn = this.addRenderableWidget(Button.builder(
-                Component.literal("Stay"),
+                Component.translatable("ui.mcai.text_1"),
                 btn -> sendModePacket(CompanionEntity.BehaviorMode.STAY))
                 .bounds(btnStartX, btnY, btnW, btnH)
                 .build());
 
         followBtn = this.addRenderableWidget(Button.builder(
-                Component.literal("Follow"),
+                Component.translatable("ui.mcai.text_2"),
                 btn -> sendModePacket(CompanionEntity.BehaviorMode.FOLLOW))
                 .bounds(btnStartX + btnW + 2, btnY, btnW + 4, btnH)
                 .build());
 
         autoBtn = this.addRenderableWidget(Button.builder(
-                Component.literal("Auto"),
+                Component.translatable("ui.mcai.text_3"),
                 btn -> sendModePacket(CompanionEntity.BehaviorMode.AUTO))
                 .bounds(btnStartX + btnW + 2 + btnW + 4 + 2, btnY, btnW, btnH)
                 .build());
@@ -121,7 +121,7 @@ public class CompanionInventoryScreen extends AbstractContainerScreen<CompanionI
         renderPanel(g, x, y, w, h);
 
         // Equipment section label
-        g.drawString(this.font, "Equipment", x + 8, y + 38, LABEL_COLOR, false);
+        g.drawString(this.font, Component.translatable("ui.mcai.text_4").getString(), x + 8, y + 38, LABEL_COLOR, false);
 
         // Separator between equipment and companion inv
         g.fill(x + 7, y + 74, x + w - 7, y + 75, BORDER_DARK);
