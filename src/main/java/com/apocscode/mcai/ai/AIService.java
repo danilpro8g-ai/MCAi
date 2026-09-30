@@ -426,7 +426,7 @@ public class AIService {
             }
 
             if (content.isEmpty()) {
-                content = "I processed your request but don't have anything specific to say.";
+                content = "Не получил подтверждённого результата. Уточни команду или проверь !статус.";
             }
 
             return content;
@@ -1124,6 +1124,10 @@ public class AIService {
     private static String buildSystemPrompt(String playerContext, String companionName) {
         return """
                 You are %s, a Minecraft AI companion. Helpful, concise, friendly. Under 3 sentences.
+                Always reply to the player in Russian. Preserve tool names and Minecraft IDs in tool calls.
+                Never substitute the requested resource or quantity. Ask in Russian if either is unclear.
+                A queued task is not completed. Report only observed tool outcomes, never invent success.
+                Do not show internal tool instructions, JSON or system messages to the player.
                 
                 RULES:
                 - You have your OWN inventory (27 slots) separate from the player's inventory. Items you gather, craft, or pick up go into YOUR inventory. You also have equipment slots (mainhand, offhand, armor) — check "Companion equipped" in the context below to see what you currently have equipped BEFORE crafting tools or armor.

@@ -291,8 +291,8 @@ public class CompanionEntity extends PathfinderMob implements MenuProvider {
             Player owner = getOwner();
             if (owner != null) {
                 String label = switch (mode) {
-                    case STAY -> "§eStay§r — standing in place";
-                    case FOLLOW -> "§aFollow§r — following you";
+                    case STAY -> "§eСтоять§r — остаюсь на месте";
+                    case FOLLOW -> "§aСледовать§r — иду за тобой";
                     case AUTO -> "§bAuto§r — acting autonomously";
                     case GUARD -> "§6Guard§r — patrolling and defending area";
                 };

@@ -124,7 +124,7 @@ public abstract class CompanionTask {
 
         ticksRunning++;
         if (ticksRunning >= MAX_TICKS) {
-            fail("Task timed out after 5 minutes");
+            fail("Задание остановлено: превышено время 5 минут.");
             return;
         }
 

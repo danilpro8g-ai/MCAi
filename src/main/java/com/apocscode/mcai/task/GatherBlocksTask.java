@@ -49,12 +49,12 @@ public class GatherBlocksTask extends CompanionTask {
 
     @Override
     public String getTaskName() {
-        return "Gather " + targetBlocks[0].getName().getString() + " (r=" + radius + ")";
+        return "Добыча " + targetBlocks[0].getName().getString() + " (r=" + radius + ")";
     }
 
     @Override
     public int getProgressPercent() {
-        return totalBlocks > 0 ? (blocksGathered * 100) / totalBlocks : -1;
+        return totalBlocks > 0 ? (blocksGathered * 100) / maxBlocks : -1;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class GatherBlocksTask extends CompanionTask {
                 // Don't dig down inside the home area
                 if (companion.isInHomeArea(companion.blockPosition())) {
                     MCAi.LOGGER.info("GatherBlocksTask: inside home area, won't dig down");
-                    fail("No " + targetBlocks[0].getName().getString() + " found outside home area");
+                    fail("Не найдено: " + targetBlocks[0].getName().getString() + " вне домашней зоны");
                     return;
                 }
                 MCAi.LOGGER.info("GatherBlocksTask: no surface {}, will try digging down",
@@ -88,17 +88,17 @@ public class GatherBlocksTask extends CompanionTask {
                 digTarget = companion.blockPosition();
                 digDirection = companion.getDirection(); // face direction for staircase
                 descendProgress = 0;
-                say("No exposed " + targetBlocks[0].getName().getString() + " nearby \u2014 digging stairs down to find some!");
+                say("Нет открытых блоков: " + targetBlocks[0].getName().getString() + " рядом — ищу под землёй.");
                 return;
             }
             MCAi.LOGGER.warn("GatherBlocksTask: no {} blocks found within r={}",
                     targetBlocks[0].getName().getString(), radius);
-            say("Couldn't find any " + targetBlocks[0].getName().getString() + " nearby.");
-            fail("No " + targetBlocks[0].getName().getString() + " found within radius " + radius);
+            say("Не удалось найти: " + targetBlocks[0].getName().getString() + " рядом.");
+            fail("Не найдено: " + targetBlocks[0].getName().getString() + "; радиус поиска: " + radius);
             return;
         }
         totalBlocks = targets.size();
-        say("Found " + totalBlocks + " " + targetBlocks[0].getName().getString() + " to gather!");
+        say("Найдено: " + totalBlocks + " " + targetBlocks[0].getName().getString() + " для добычи.");
     }
 
     @Override
@@ -113,8 +113,11 @@ public class GatherBlocksTask extends CompanionTask {
             MCAi.LOGGER.info("GatherBlocksTask: finished — gathered {}/{} {} blocks",
                     blocksGathered, maxBlocks, targetBlocks[0].getName().getString());
             if (blocksGathered == 0) {
-                fail("Found " + targetBlocks[0].getName().getString() + " blocks but couldn't reach any (0 gathered)");
+                fail("Найдено: " + targetBlocks[0].getName().getString() + " — не удалось добраться, добыто 0.");
+            } else if (blocksGathered < maxBlocks) {
+                fail("Добыто " + blocksGathered + " из " + maxBlocks + " блоков. Других доступных целей не найдено.");
             } else {
+                say("Добыто " + blocksGathered + " из " + maxBlocks + " блоков.");
                 complete();
             }
             return;
@@ -140,11 +143,11 @@ public class GatherBlocksTask extends CompanionTask {
 
         if (isInReach(currentTarget, 3.0)) {
             companion.equipBestToolForBlock(companion.level().getBlockState(currentTarget));
-            BlockHelper.breakBlock(companion, currentTarget);
+            boolean broken = BlockHelper.breakBlock(companion, currentTarget);
             targets.poll();
             currentTarget = null;
             stuckTimer = 0;
-            blocksGathered++;
+            if (broken) blocksGathered++;
         } else {
             navigateTo(currentTarget);
             stuckTimer++;
@@ -163,7 +166,7 @@ public class GatherBlocksTask extends CompanionTask {
      */
     private void tickDigDown() {
         if (digDirection == null) {
-            fail("Dig direction lost");
+            fail("Потеряно направление раскопки");
             return;
         }
 
@@ -171,7 +174,7 @@ public class GatherBlocksTask extends CompanionTask {
         if (descendProgress >= DIG_DOWN_MAX) {
             MCAi.LOGGER.warn("GatherBlocksTask: dug down {} steps without finding target",
                     DIG_DOWN_MAX);
-            fail("Dug down " + DIG_DOWN_MAX + " steps but couldn't find "
+            fail("Пройдено вниз: " + DIG_DOWN_MAX + " ступеней; не найдено: "
                     + targetBlocks[0].getName().getString());
             return;
         }
@@ -182,7 +185,7 @@ public class GatherBlocksTask extends CompanionTask {
         // Safety: near world bottom
         if (pos.getY() <= level.getMinBuildHeight() + 2) {
             MCAi.LOGGER.warn("GatherBlocksTask: near world bottom at Y={}", pos.getY());
-            fail("Reached world bottom without finding "
+            fail("Достигнута нижняя граница мира; не найдено: "
                     + targetBlocks[0].getName().getString());
             return;
         }
@@ -197,7 +200,7 @@ public class GatherBlocksTask extends CompanionTask {
         // Safety: check for lava at the step-down position
         if (!BlockHelper.isSafeToMine(level, aheadBelow)) {
             MCAi.LOGGER.warn("GatherBlocksTask: lava detected at stairs, aborting dig-down");
-            fail("Lava detected while digging stairs — aborting for safety");
+            fail("Обнаружена лава. Раскопка остановлена.");
             return;
         }
 
@@ -214,7 +217,7 @@ public class GatherBlocksTask extends CompanionTask {
                     if (!found.isEmpty()) {
                         targets.addAll(found);
                         totalBlocks = targets.size();
-                        say("Found " + totalBlocks + " " + targetBlocks[0].getName().getString() + " underground!");
+                        say("Найдено: " + totalBlocks + " " + targetBlocks[0].getName().getString() + " под землёй.");
                     } else {
                         targets.add(checkPos);
                         totalBlocks = 1;

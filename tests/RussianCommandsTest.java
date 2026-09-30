@@ -14,6 +14,19 @@ public class RussianCommandsTest {
         if (!"cancel".equals(RussianCommands.quick("отмена"))) throw new AssertionError("cancel");
         if (RussianCommands.quick("не стой") != null) throw new AssertionError("negation");
         if (RussianCommands.gather("привет") != null) throw new AssertionError("chat");
+        gather("на копай земли 4 блока", "dirt", 4);
+        gather("добудь 2 угля", "coal", 2);
+        gather("наруби 8 древесины", "wood", 8);
+        gather("собери 3 дубовых бревна", "oak_log", 3);
+        var session = new RussianCommands.Session();
+        if (session.parse("добудь уголь", 1).error() == null) throw new AssertionError("clarify");
+        if (!"coal".equals(session.parse("4", 2).block())) throw new AssertionError("context");
+        if (session.parse("еще 2", 3).count() != 2) throw new AssertionError("more");
+        if (session.parse("столько же", 4).count() != 2) throw new AssertionError("repeat");
+        if (session.parse("еще 4", 700000).error() == null) throw new AssertionError("expiry");
+        if (new RussianCommands.Session().parse("еще 4", 1).error() == null) throw new AssertionError("isolation");
+        if (!RussianCommands.gather("добудь 4 железа").countKey().equals("maxOres")) throw new AssertionError("ore routing");
+        if (!RussianCommands.gather("наруби 4 дерева").countKey().equals("maxLogs")) throw new AssertionError("wood routing");
         System.out.println("Russian command regression checks passed");
     }
     private static void gather(String text, String block, int count) {

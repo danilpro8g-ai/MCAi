@@ -78,7 +78,7 @@ public class TaskManager {
 
             if (taskStatus == CompanionTask.Status.COMPLETED) {
                 companion.getChat().say(CompanionChat.Category.TASK,
-                        "Done: " + taskDescription);
+                        "Выполнено: " + taskDescription);
                 // Award XP for completing a task
                 companion.awardXp(com.apocscode.mcai.entity.CompanionLevelSystem.TASK_COMPLETE_XP);
 
@@ -100,14 +100,14 @@ public class TaskManager {
                         MCAi.LOGGER.info("Auto-deposited {} item(s) to tagged storage after task: {}",
                                 deposited, taskDescription);
                         companion.getChat().say(CompanionChat.Category.TASK,
-                                "Deposited " + deposited + " item(s) to storage.");
+                                "Перенесено: " + deposited + " предметов в хранилище.");
                     }
                 }
             } else {
                 String reason = activeTask.getFailReason() != null
-                        ? activeTask.getFailReason() : "unknown error";
+                        ? activeTask.getFailReason() : "неизвестная ошибка";
                 companion.getChat().say(CompanionChat.Category.TASK,
-                        "Failed: " + taskDescription + " — " + reason);
+                        "Не выполнено: " + taskDescription + " — " + reason);
                 MCAi.LOGGER.warn("Task FAILED: {} — reason: {}", taskDescription, reason);
             }
 
@@ -118,7 +118,7 @@ public class TaskManager {
                 } else {
                     // Fire failure continuation so the AI can adapt and try alternatives
                     String failReason = activeTask.getFailReason() != null
-                            ? activeTask.getFailReason() : "unknown error";
+                            ? activeTask.getFailReason() : "неизвестная ошибка";
                     fireFailureContinuation(continuation, taskDescription, failReason);
                 }
             }
@@ -140,7 +140,7 @@ public class TaskManager {
             MCAi.LOGGER.info("Task starting: {} (remaining in queue: {})",
                     activeTask.getDescription(), taskQueue.size());
             companion.getChat().say(CompanionChat.Category.TASK,
-                    "Starting: " + activeTask.getDescription());
+                    "Начинаю: " + activeTask.getDescription());
 
             // Start chunk loading so companion stays active if player walks away
             if (!chunkLoader.isLoading()) {
@@ -165,7 +165,7 @@ public class TaskManager {
                 if (percent >= 0 && percent != lastAnnouncedPercent) {
                     lastAnnouncedPercent = percent;
                     companion.getChat().say(CompanionChat.Category.TASK,
-                            activeTask.getTaskName() + ": " + percent + "% done");
+                            activeTask.getTaskName() + ": " + percent + "% выполнено");
                 }
             }
         }
@@ -299,11 +299,11 @@ public class TaskManager {
      */
     public String getStatusSummary() {
         if (activeTask == null && taskQueue.isEmpty()) {
-            return "Idle — no tasks queued.";
+            return "Свободен — заданий нет.";
         }
         StringBuilder sb = new StringBuilder();
         if (activeTask != null) {
-            sb.append("Active: ").append(activeTask.getDescription());
+            sb.append("Сейчас: ").append(activeTask.getDescription());
             int percent = activeTask.getProgressPercent();
             if (percent >= 0) {
                 sb.append(" [").append(percent).append("%]");
@@ -311,7 +311,7 @@ public class TaskManager {
             sb.append(" (").append(activeTask.getStatus()).append(")");
         }
         if (!taskQueue.isEmpty()) {
-            sb.append(" | ").append(taskQueue.size()).append(" task(s) queued");
+            sb.append(" | ").append(taskQueue.size()).append(" заданий в очереди");
         }
         return sb.toString();
     }

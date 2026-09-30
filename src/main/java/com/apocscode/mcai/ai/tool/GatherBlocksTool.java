@@ -95,7 +95,7 @@ public class GatherBlocksTool implements AiTool {
             // Pre-check: skip if companion already has enough of this block item
             // If items are in storage but not in inventory, PULL them instead of skipping
             net.minecraft.world.item.Item blockItem = targetBlock.asItem();
-            if (blockItem != null && blockItem != net.minecraft.world.item.Items.AIR) {
+            if (!(args.has("additional") && args.get("additional").getAsBoolean()) && blockItem != null && blockItem != net.minecraft.world.item.Items.AIR) {
                 int totalHave = BlockHelper.countItem(companion, blockItem);
                 if (totalHave >= maxBlocks) {
                     // Count what's actually in companion inventory (not storage)

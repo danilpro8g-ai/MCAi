@@ -40,7 +40,7 @@ public class ChatMessageHandler {
                 String response = handleQuickCommand(message.substring(1).trim(), companion, serverPlayer);
                 PacketDistributor.sendToPlayer(serverPlayer, new ChatResponsePacket(response));
             } else {
-                PacketDistributor.sendToPlayer(serverPlayer, new ChatResponsePacket("No companion found."));
+                PacketDistributor.sendToPlayer(serverPlayer, new ChatResponsePacket("Спутник не найден."));
             }
             return;
         }
@@ -154,55 +154,55 @@ public class ChatMessageHandler {
         return switch (lower) {
             case "follow" -> {
                 companion.setBehaviorMode(CompanionEntity.BehaviorMode.FOLLOW);
-                yield "Following you!";
+                yield "Иду за тобой!";
             }
             case "stay" -> {
                 companion.setBehaviorMode(CompanionEntity.BehaviorMode.STAY);
-                yield "Staying here.";
+                yield "Остаюсь здесь.";
             }
             case "auto" -> {
                 companion.setBehaviorMode(CompanionEntity.BehaviorMode.AUTO);
-                yield "Autonomous mode active!";
+                yield "Автономный режим включён.";
             }
             case "come", "here" -> {
                 double dist = companion.distanceTo(player);
                 if (dist > 64.0) {
                     companion.teleportTo(player.getX(), player.getY(), player.getZ());
                     companion.getNavigation().stop();
-                    yield "Teleporting to you!";
+                    yield "Перемещаюсь к тебе!";
                 } else if (dist > 4.0) {
                     companion.getNavigation().moveTo(player.getX(), player.getY(), player.getZ(), 1.4);
-                    yield "Coming to you!";
+                    yield "Иду к тебе!";
                 } else {
-                    yield "I'm already right here.";
+                    yield "Я уже рядом.";
                 }
             }
             case "status" -> {
                 float hp = companion.getHealth();
                 float maxHp = companion.getMaxHealth();
-                String mode = companion.getBehaviorMode().name();
+                String mode = switch (companion.getBehaviorMode()) { case FOLLOW -> "За мной"; case STAY -> "Стоять"; case AUTO -> "Авто"; };
                 String tasks = companion.getTaskManager().getStatusSummary();
-                yield String.format("HP: %.0f/%.0f | Mode: %s | %s", hp, maxHp, mode, tasks);
+                yield String.format("Здоровье: %.0f/%.0f | Режим: %s | %s", hp, maxHp, mode, tasks);
             }
             case "cancel", "stop" -> {
                 companion.getTaskManager().cancelAll();
                 companion.getNavigation().stop();
-                yield "All tasks cancelled.";
+                yield "Все задания отменены.";
             }
             case "equip" -> {
                 companion.autoEquipBestGear();
-                yield "Equipped best available gear!";
+                yield "Надел лучшее доступное снаряжение.";
             }
             case "hp", "health" -> {
                 float hp = companion.getHealth();
                 float maxHp = companion.getMaxHealth();
                 float pct = (hp / maxHp) * 100f;
-                yield String.format("Health: %.0f/%.0f (%.0f%%)", hp, maxHp, pct);
+                yield String.format("Здоровье: %.0f/%.0f (%.0f%%)", hp, maxHp, pct);
             }
             case "help", "?" -> {
-                yield "Quick commands: !follow !stay !auto !come !status !cancel !equip !health !help";
+                yield "Команды: !за мной, !стой, !авто, !ко мне, !статус, !отмена, !экипировка, !здоровье, !помощь";
             }
-            default -> "Unknown command: !" + cmd + ". Type !help for a list.";
+            default -> "Неизвестная команда: !" + cmd + ". Напиши !помощь.";
         };
     }
 }
