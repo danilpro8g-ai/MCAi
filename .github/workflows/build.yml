@@ -18,6 +18,8 @@ jobs:
           mkdir -p build/command-tests
           javac -encoding UTF-8 -d build/command-tests src/main/java/com/apocscode/mcai/ai/RussianCommands.java tests/RussianCommandsTest.java
           java -cp build/command-tests RussianCommandsTest
+          javac -encoding UTF-8 -d build/command-tests src/main/java/com/apocscode/mcai/ai/IntentRules.java tests/IntentRulesTest.java
+          java -cp build/command-tests IntentRulesTest
       - name: Build mod
         run: bash gradlew build --no-daemon
       - uses: actions/upload-artifact@v4

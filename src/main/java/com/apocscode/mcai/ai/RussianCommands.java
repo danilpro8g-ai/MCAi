@@ -11,7 +11,10 @@ public final class RussianCommands {
         Map.entry("стой", "stay"), Map.entry("жди", "stay"),
         Map.entry("за мной", "follow"), Map.entry("следуй за мной", "follow"),
         Map.entry("ко мне", "come"), Map.entry("иди сюда", "come"),
-        Map.entry("отмена", "cancel"), Map.entry("отмени", "cancel"), Map.entry("стоп", "cancel"),
+        Map.entry("отмена", "cancel"), Map.entry("отмени", "cancel"),
+        Map.entry("отмени задание", "cancel"), Map.entry("отмени задания", "cancel"),
+        Map.entry("отменить задание", "cancel"), Map.entry("отменить задания", "cancel"),
+        Map.entry("прекрати", "cancel"), Map.entry("хватит", "cancel"), Map.entry("стоп", "cancel"),
         Map.entry("статус", "status"), Map.entry("здоровье", "health"),
         Map.entry("авто", "auto"), Map.entry("экипировка", "equip"), Map.entry("помощь", "help"));
     private static final Map<String, String> BLOCKS = Map.ofEntries(

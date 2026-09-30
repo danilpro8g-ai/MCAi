@@ -26,6 +26,8 @@ public class TaskManager {
     private CompanionTask activeTask;
     private int progressAnnounceTicks = 0;
     private int lastAnnouncedPercent = -1;
+    /** Last completed, failed or cancelled task, retained so !status explains an idle companion. */
+    private String lastTaskSummary = "Пока заданий не было.";
 
     // Pending continuation retry — fires after ticksRemaining reaches 0
     private TaskContinuation pendingRetryContinuation;
@@ -77,6 +79,7 @@ public class TaskManager {
                     continuation != null);
 
             if (taskStatus == CompanionTask.Status.COMPLETED) {
+                lastTaskSummary = "Выполнено: " + taskDescription;
                 companion.getChat().say(CompanionChat.Category.TASK,
                         "Выполнено: " + taskDescription);
                 // Award XP for completing a task
@@ -106,6 +109,7 @@ public class TaskManager {
             } else {
                 String reason = activeTask.getFailReason() != null
                         ? activeTask.getFailReason() : "неизвестная ошибка";
+                lastTaskSummary = "Не выполнено: " + taskDescription + " — " + reason;
                 companion.getChat().say(CompanionChat.Category.TASK,
                         "Не выполнено: " + taskDescription + " — " + reason);
                 MCAi.LOGGER.warn("Task FAILED: {} — reason: {}", taskDescription, reason);
@@ -247,9 +251,15 @@ public class TaskManager {
      * Cancel the active task and clear the queue.
      */
     public void cancelAll() {
+        pendingRetryContinuation = null;
+        pendingRetryTaskResult = null;
+        pendingRetryCompanionName = null;
         if (activeTask != null) {
+            lastTaskSummary = "Отменено: " + activeTask.getDescription();
             activeTask.cleanup();
             activeTask = null;
+        } else if (!taskQueue.isEmpty()) {
+            lastTaskSummary = "Отменены задания из очереди.";
         }
         taskQueue.clear();
         companion.getNavigation().stop();
@@ -299,7 +309,7 @@ public class TaskManager {
      */
     public String getStatusSummary() {
         if (activeTask == null && taskQueue.isEmpty()) {
-            return "Свободен — заданий нет.";
+            return "Свободен — заданий нет. Последнее: " + lastTaskSummary;
         }
         StringBuilder sb = new StringBuilder();
         if (activeTask != null) {

@@ -35,6 +35,7 @@ public class ChatMessageHandler {
 
         // === Quick commands (bypass AI) ===
         if (message.startsWith("!")) {
+            com.apocscode.mcai.ai.IntentController.invalidate(serverPlayer);
             Entity entity = serverPlayer.level().getEntity(packet.entityId());
             if (entity instanceof CompanionEntity companion) {
                 String response = handleQuickCommand(message.substring(1).trim(), companion, serverPlayer);
@@ -54,14 +55,6 @@ public class ChatMessageHandler {
             companionName = comp.getCompanionName();
         }
 
-        // === Local command parser — handles common requests without AI ===
-        // Works offline, zero latency, immune to rate limits.
-        if (CommandParser.tryParse(message, serverPlayer, companion)) {
-            MCAi.LOGGER.info("Command handled locally (no AI needed): {}", message);
-            return;
-        }
-
-        // Call AI asynchronously — NEVER block the server thread
         sendToAI(message, serverPlayer, companionName, false);
     }
 
@@ -81,19 +74,13 @@ public class ChatMessageHandler {
 
         // Quick commands (prefixed with !)
         if (message.startsWith("!")) {
+            com.apocscode.mcai.ai.IntentController.invalidate(player);
             String response = handleQuickCommand(message.substring(1).trim(), companion, player);
             player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                     "§b[" + companion.getCompanionName() + "]§r " + response));
             return;
         }
 
-        // Local command parser — handles common requests without AI
-        if (CommandParser.tryParse(message, player, companion)) {
-            MCAi.LOGGER.info("Game chat command handled locally (no AI needed): {}", message);
-            return;
-        }
-
-        // Natural language — send to AI, respond in game chat
         sendToAI(message, player, companion.getCompanionName(), true);
     }
 
@@ -102,37 +89,11 @@ public class ChatMessageHandler {
      * @param useGameChat If true, respond via sendSystemMessage; if false, via ChatResponsePacket.
      */
     private static void sendToAI(String message, ServerPlayer player, String companionName, boolean useGameChat) {
-        // Cancel any active companion task — new player input overrides old tasks
         CompanionEntity companion = CompanionEntity.getLivingCompanion(player.getUUID());
-        if (companion != null && companion.getTaskManager().hasTasks()) {
-            companion.getTaskManager().cancelAll();
-            MCAi.LOGGER.info("Cancelled active tasks — new player command: {}", message);
-        }
-
-        AIService.chat(message, player, ConversationManager.getHistoryForAI(), companionName)
-                .thenAccept(response -> {
-                    player.getServer().execute(() -> {
-                        if (useGameChat) {
-                            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                                    "§b[" + companionName + "]§r " + response));
-                        } else {
-                            PacketDistributor.sendToPlayer(player, new ChatResponsePacket(response));
-                        }
-                    });
-                })
-                .exceptionally(ex -> {
-                    MCAi.LOGGER.error("AI response failed", ex);
-                    player.getServer().execute(() -> {
-                        String errMsg = "Sorry, I had an error: " + ex.getMessage();
-                        if (useGameChat) {
-                            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                                    "§c[" + companionName + "]§r " + errMsg));
-                        } else {
-                            PacketDistributor.sendToPlayer(player, new ChatResponsePacket(errMsg));
-                        }
-                    });
-                    return null;
-                });
+        com.apocscode.mcai.ai.IntentController.handle(message, player, companion, response -> {
+            if (useGameChat) player.sendSystemMessage(Component.literal("§b[" + companionName + "]§r " + response));
+            else PacketDistributor.sendToPlayer(player, new ChatResponsePacket(response));
+        });
     }
 
     /**
@@ -147,6 +108,7 @@ public class ChatMessageHandler {
      *   !help                      — list commands
      */
     public static String handleQuickCommand(String cmd, CompanionEntity companion, ServerPlayer player) {
+        if (!player.getUUID().equals(companion.getOwnerUUID())) return "Это не твой спутник.";
         String lower = com.apocscode.mcai.ai.RussianCommands.normalize(cmd);
         String alias = com.apocscode.mcai.ai.RussianCommands.quick(lower);
         if (alias != null) lower = alias;
@@ -157,6 +119,8 @@ public class ChatMessageHandler {
                 yield "Иду за тобой!";
             }
             case "stay" -> {
+                companion.getTaskManager().cancelAll();
+                companion.getNavigation().stop();
                 companion.setBehaviorMode(CompanionEntity.BehaviorMode.STAY);
                 yield "Остаюсь здесь.";
             }
@@ -185,9 +149,10 @@ public class ChatMessageHandler {
                 yield String.format("Здоровье: %.0f/%.0f | Режим: %s | %s", hp, maxHp, mode, tasks);
             }
             case "cancel", "stop" -> {
+                boolean hadTasks = companion.getTaskManager().hasTasks();
                 companion.getTaskManager().cancelAll();
                 companion.getNavigation().stop();
-                yield "Все задания отменены.";
+                yield hadTasks ? "Все задания отменены." : "Активных заданий нет.";
             }
             case "equip" -> {
                 companion.autoEquipBestGear();
