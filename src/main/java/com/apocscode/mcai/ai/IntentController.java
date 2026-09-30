@@ -44,6 +44,7 @@ public final class IntentController {
                     JsonObject args = new JsonObject();
                     args.addProperty(gather.resourceKey(), gather.block()); args.addProperty(gather.countKey(), gather.count());
                     args.addProperty("additional", true);
+                    args.addProperty("confirmedIntent", true);
                     String result = tool.execute(args, new ToolContext(player, player.getServer()));
                     if (result != null && result.contains("[ASYNC_TASK]")) state.previous = intent;
                     reply.accept(PlayerReplies.toolResult(result));

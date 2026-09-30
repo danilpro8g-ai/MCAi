@@ -108,6 +108,9 @@ public class MineOresTool implements AiTool {
                 if (targetOre.minTier > 0) {
                     int companionTier = getCompanionPickaxeTier(companion);
                     if (companionTier < targetOre.minTier) {
+                        if (args.has("confirmedIntent") && args.get("confirmedIntent").getAsBoolean()) {
+                            return "Для этой руды нужна кирка лучшего уровня. Дай спутнику подходящую кирку и повтори команду.";
+                        }
                         String neededPick = getPickaxeForTier(targetOre.minTier);
                         String planText = "mine_ores({\"ore\":\"" + targetOre.name + "\",\"radius\":" + radius +
                                 ",\"maxOres\":" + maxOres + "})";
