@@ -180,7 +180,7 @@ public class ChatMessageHandler {
             case "status" -> {
                 float hp = companion.getHealth();
                 float maxHp = companion.getMaxHealth();
-                String mode = switch (companion.getBehaviorMode()) { case FOLLOW -> "За мной"; case STAY -> "Стоять"; case AUTO -> "Авто"; };
+                String mode = switch (companion.getBehaviorMode()) { case FOLLOW -> "За мной"; case STAY -> "Стоять"; case AUTO -> "Авто"; case GUARD -> "Охрана"; };
                 String tasks = companion.getTaskManager().getStatusSummary();
                 yield String.format("Здоровье: %.0f/%.0f | Режим: %s | %s", hp, maxHp, mode, tasks);
             }
