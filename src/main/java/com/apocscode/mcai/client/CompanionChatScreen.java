@@ -49,7 +49,7 @@ public class CompanionChatScreen extends Screen {
     private record RenderedLine(FormattedCharSequence content, int x, int y) {}
 
     public CompanionChatScreen(int entityId) {
-        super(Component.literal("MCAi Chat"));
+        super(Component.translatable("ui.mcai.text_5"));
         this.entityId = entityId;
     }
 
@@ -76,7 +76,7 @@ public class CompanionChatScreen extends Screen {
 
         // Input field
         inputBox = new EditBox(this.font, PADDING, inputY, inputWidth, INPUT_HEIGHT,
-                Component.literal("Type a message..."));
+                Component.translatable("ui.mcai.text_6"));
         inputBox.setMaxLength(500);
         inputBox.setFocused(true);
         inputBox.setCanLoseFocus(false);
@@ -92,7 +92,7 @@ public class CompanionChatScreen extends Screen {
 
         // Send button
         int sendX = hasMic ? PADDING + inputWidth + 4 + MIC_BUTTON_WIDTH + 4 : PADDING * 2 + inputWidth;
-        sendButton = Button.builder(Component.literal("Send"), button -> sendMessage())
+        sendButton = Button.builder(Component.translatable("ui.mcai.text_7"), button -> sendMessage())
                 .bounds(sendX, inputY, BUTTON_WIDTH, INPUT_HEIGHT)
                 .build();
         this.addRenderableWidget(sendButton);
@@ -178,11 +178,11 @@ public class CompanionChatScreen extends Screen {
 
         // Whisper status hint (bottom-left, subtle)
         if (WhisperService.isAvailable()) {
-            graphics.drawString(this.font, "§8[V = push-to-talk]", PADDING, this.height - PADDING - INPUT_HEIGHT - 14, 0x444444, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_11").getString(), PADDING, this.height - PADDING - INPUT_HEIGHT - 14, 0x444444, false);
         }
 
         // Persistent hint (bottom-right, subtle): remind about ! commands
-        String hintText = "§8! = commands";
+        String hintText = Component.translatable("ui.mcai.text_10").getString();
         int hintW = this.font.width(hintText);
         graphics.drawString(this.font, hintText, this.width - PADDING - hintW, this.height - PADDING - INPUT_HEIGHT - 14, 0x444444, false);
 
@@ -203,33 +203,33 @@ public class CompanionChatScreen extends Screen {
             graphics.drawCenteredString(this.font, "§e§lWelcome to MCAi Chat!", this.width / 2, helpY, 0xFFFF55);
             helpY += lineH + 6;
 
-            graphics.drawString(this.font, "§7Type a message below to talk to your companion.", helpX, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_12").getString(), helpX, helpY, 0xAAAAAA, false);
             helpY += lineH + 8;
 
-            graphics.drawString(this.font, "§f§lQuick Commands §7(prefix with §f!§7):", helpX, helpY, 0xFFFFFF, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_13").getString(), helpX, helpY, 0xFFFFFF, false);
             helpY += lineH + 2;
-            graphics.drawString(this.font, "§a!follow §7- Follow you", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_17").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH;
-            graphics.drawString(this.font, "§a!stay   §7- Stay in place", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_18").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH;
-            graphics.drawString(this.font, "§a!auto   §7- Autonomous mode", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_19").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH;
-            graphics.drawString(this.font, "§a!come   §7- Teleport to you", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_20").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH;
-            graphics.drawString(this.font, "§a!status §7- Health & task info", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_21").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH;
-            graphics.drawString(this.font, "§a!cancel §7- Cancel all tasks", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_22").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH;
-            graphics.drawString(this.font, "§a!equip  §7- Auto-equip best gear", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_23").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH;
-            graphics.drawString(this.font, "§a!help   §7- Show all commands", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_24").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH + 10;
 
-            graphics.drawString(this.font, "§f§lGame Chat §7(press T):", helpX, helpY, 0xFFFFFF, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_14").getString(), helpX, helpY, 0xFFFFFF, false);
             helpY += lineH + 2;
-            graphics.drawString(this.font, "§7Type §f!command§7 in normal chat too!", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_15").getString(), helpX + 8, helpY, 0xAAAAAA, false);
             helpY += lineH;
-            graphics.drawString(this.font, "§7e.g. §f!come§7, §f!follow§7, §f!status", helpX + 8, helpY, 0xAAAAAA, false);
+            graphics.drawString(this.font, Component.translatable("ui.mcai.text_16").getString(), helpX + 8, helpY, 0xAAAAAA, false);
         }
 
         renderedLines.clear();
@@ -366,7 +366,7 @@ public class CompanionChatScreen extends Screen {
 
         // Add prefix
         if (msg.isPlayer()) {
-            result.append(Component.literal("[You] ").withStyle(ChatFormatting.GREEN));
+            result.append(Component.translatable("ui.mcai.text_8").withStyle(ChatFormatting.GREEN));
         } else if (!msg.isSystem()) {
             result.append(Component.literal("[" + companionName + "] ").withStyle(ChatFormatting.AQUA));
         }
@@ -402,7 +402,7 @@ public class CompanionChatScreen extends Screen {
                             .withUnderlined(true)
                             .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url))
                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                    Component.literal("§7Click to open link")))));
+                                    Component.translatable("ui.mcai.text_9")))));
 
             lastEnd = urlMatcher.end();
         }

@@ -74,7 +74,7 @@ public class ChopTreesTask extends CompanionTask {
 
     @Override
     public String getTaskName() {
-        return "Chop trees (r=" + radius + ")";
+        return "Рубка деревьев (радиус=" + radius + ")";
     }
 
     @Override
@@ -96,11 +96,11 @@ public class ChopTreesTask extends CompanionTask {
             }
         }
         if (treeBaseTargets.isEmpty()) {
-            say("No trees found within " + radius + " blocks.");
-            fail("No trees found within radius " + radius);
+            say("Деревья не найдены в радиусе " + radius + " блоков.");
+            fail("Деревья не найдены в радиусе " + radius);
             return;
         }
-        say("Found " + treeBaseTargets.size() + " trees to fell!");
+        say("Найдено: " + treeBaseTargets.size() + " деревьев для рубки.");
     }
 
     @Override
@@ -220,6 +220,7 @@ public class ChopTreesTask extends CompanionTask {
         logsToBreak.sort(Comparator.comparingInt(BlockPos::getY));
         int broken = 0;
         for (BlockPos log : logsToBreak) {
+            if (logsChopped + broken >= maxLogs) break;
             if (BlockHelper.breakBlock(companion, log)) {
                 broken++;
             }
@@ -341,23 +342,15 @@ public class ChopTreesTask extends CompanionTask {
 
         // If trees were found but none could be reached/felled, report failure
         if (logsChopped == 0) {
-            fail("Found trees but couldn't reach or fell any (0 logs collected)");
+            fail("Деревья найдены, но недоступны. Добыто 0 брёвен.");
             return;
         }
 
-        StringBuilder msg = new StringBuilder();
-        msg.append("Done! Felled ").append(treesFelled).append(" tree")
-           .append(treesFelled != 1 ? "s" : "")
-           .append(" (").append(logsChopped).append(" logs)");
-        if (leavesCleared > 0) {
-            msg.append(", cleared ").append(leavesCleared).append(" leaves");
+        say("Срублено деревьев: " + treesFelled + ". Добыто брёвен: " + logsChopped + " из " + maxLogs + ".");
+        if (logsChopped < maxLogs) {
+            fail("Доступные деревья закончились. Добыто " + logsChopped + " из " + maxLogs + " брёвен.");
+            return;
         }
-        if (saplingsPlanted > 0) {
-            msg.append(", replanted ").append(saplingsPlanted).append(" sapling")
-               .append(saplingsPlanted > 1 ? "s" : "");
-        }
-        msg.append(".");
-        say(msg.toString());
         complete();
     }
 

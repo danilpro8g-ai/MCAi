@@ -1,0 +1,28 @@
+name: Build and Russian command checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Russian parser regression checks
+        run: |
+          mkdir -p build/command-tests
+          javac -encoding UTF-8 -d build/command-tests src/main/java/com/apocscode/mcai/ai/RussianCommands.java tests/RussianCommandsTest.java
+          java -cp build/command-tests RussianCommandsTest
+          javac -encoding UTF-8 -d build/command-tests src/main/java/com/apocscode/mcai/ai/IntentRules.java tests/IntentRulesTest.java
+          java -cp build/command-tests IntentRulesTest
+      - name: Build mod
+        run: bash gradlew build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MCAi-RU
+          path: build/libs/*.jar

@@ -53,10 +53,15 @@ public class MineOresTask extends CompanionTask {
         this.targetOre = targetOre;
     }
 
+    private void finishMining() {
+        if (oresMined >= maxOres) complete();
+        else fail("Добыто " + oresMined + " из " + maxOres + " блоков руды. Проверь путь, кирку и наличие руды рядом.");
+    }
+
     @Override
     public String getTaskName() {
-        String oreLabel = targetOre != null ? targetOre.name + " ore" : "ores";
-        return "Mine " + oreLabel + " (r=" + radius + ")";
+        String oreLabel = targetOre != null ? com.apocscode.mcai.ai.PlayerReplies.resource(targetOre.name) : "руда";
+        return "Добыча руды: " + oreLabel + " (r=" + radius + ")";
     }
 
     @Override
@@ -78,40 +83,40 @@ public class MineOresTask extends CompanionTask {
             }
         }
         if (targets.isEmpty()) {
-            String oreLabel = targetOre != null ? targetOre.name + " ore" : "ores";
+            String oreLabel = targetOre != null ? com.apocscode.mcai.ai.PlayerReplies.resource(targetOre.name) : "руда";
             int currentY = companion.blockPosition().getY();
             String yHint = "";
             if (targetOre != null) {
                 if (currentY < targetOre.minY || currentY > targetOre.maxY) {
-                    yHint = " I'm at Y=" + currentY + " but " + targetOre.name +
-                            " generates between Y=" + targetOre.minY + " and Y=" + targetOre.maxY +
-                            ". Best at Y=" + targetOre.bestY + ".";
+                    yHint = " Моя высота Y=" + currentY + "; ресурс " + targetOre.name +
+                            " встречается между Y=" + targetOre.minY + " и Y=" + targetOre.maxY +
+                            ". Лучшая высота Y=" + targetOre.bestY + ".";
                 } else {
-                    yHint = " I'm at Y=" + currentY + " (right range, but none visible in " + radius + " block radius).";
+                    yHint = " Моя высота Y=" + currentY + " (right range,; ресурс none visible in " + radius + " блоков).";
                 }
             }
-            say("No " + oreLabel + " found nearby." + yHint);
-            fail("No " + oreLabel + " found within " + radius + " blocks");
+            say("Не найдено: " + oreLabel + " рядом." + yHint);
+            fail("Не найдено: " + oreLabel + "; радиус поиска: " + radius + " блоков");
             return;
         }
-        String oreLabel = targetOre != null ? targetOre.name + " ore" : "ore";
-        say("Found " + targets.size() + " " + oreLabel + " blocks to mine!");
+        String oreLabel = targetOre != null ? com.apocscode.mcai.ai.PlayerReplies.resource(targetOre.name) : "руда";
+        say("Найдено: " + targets.size() + " " + oreLabel + " блоков для добычи.");
     }
 
     @Override
     protected void tick() {
         if (oresMined >= maxOres) {
-            String oreLabel = targetOre != null ? targetOre.name + " ore" : "ores";
-            say("Mined " + oresMined + " " + oreLabel + "!");
-            complete();
+            String oreLabel = targetOre != null ? com.apocscode.mcai.ai.PlayerReplies.resource(targetOre.name) : "руда";
+            say("Добыто: " + oresMined + " " + oreLabel + "!");
+            finishMining();
             return;
         }
 
         // Health check — eat food if HP < 50%
         if (BlockHelper.tryEatIfLowHealth(companion, 0.5f)) {
-            say("Eating some food to heal up!");
+            say("Ем, чтобы восстановить здоровье.");
         } else if (!foodWarningGiven && companion.getHealth() / companion.getMaxHealth() < 0.3f) {
-            say("I'm getting low on health and don't have any food!");
+            say("Мало здоровья, а еды нет.");
             foodWarningGiven = true;
         }
 
@@ -119,13 +124,13 @@ public class MineOresTask extends CompanionTask {
         if (!toolWarningGiven && !BlockHelper.hasUsablePickaxe(companion, 0)) {
             // Try auto-crafting a new pickaxe before giving up
             if (BlockHelper.tryAutoCraftPickaxe(companion)) {
-                String oreLabel = targetOre != null ? targetOre.name + " ore" : "ores";
-                say("Crafted a new pickaxe! Continuing to mine " + oreLabel + ".");
+                String oreLabel = targetOre != null ? com.apocscode.mcai.ai.PlayerReplies.resource(targetOre.name) : "руда";
+                say("Сделал кирку, продолжаю добычу: " + oreLabel + ".");
             } else {
-                String oreLabel = targetOre != null ? targetOre.name + " ore" : "ores";
-                say("I don't have a usable pickaxe and can't craft one! Mined " + oresMined + " " + oreLabel + " so far.");
+                String oreLabel = targetOre != null ? com.apocscode.mcai.ai.PlayerReplies.resource(targetOre.name) : "руда";
+                say("Нет подходящей кирки, изготовить её не удалось. Добыто: " + oresMined + " " + oreLabel + " на данный момент.");
                 toolWarningGiven = true;
-                complete();
+                finishMining();
                 return;
             }
         }
@@ -133,25 +138,25 @@ public class MineOresTask extends CompanionTask {
         if (targets.isEmpty()) {
             scanAttempts++;
             if (scanAttempts > MAX_SCAN_ATTEMPTS) {
-                String oreLabel = targetOre != null ? targetOre.name + " ore" : "ores";
+                String oreLabel = targetOre != null ? com.apocscode.mcai.ai.PlayerReplies.resource(targetOre.name) : "руда";
                 if (oresMined == 0) {
-                    say("Could not find any " + oreLabel + " after " + MAX_SCAN_ATTEMPTS + " scans.");
-                    fail("No " + oreLabel + " found after " + MAX_SCAN_ATTEMPTS + " scans");
+                    say("Не удалось найти: " + oreLabel + " после " + MAX_SCAN_ATTEMPTS + " поисков.");
+                    fail("Не найдено: " + oreLabel + " после " + MAX_SCAN_ATTEMPTS + " поисков");
                 } else {
-                    say("Finished mining. Got " + oresMined + " " + oreLabel + ".");
-                    complete();
+                    say("Добыча завершена. Добыто: " + oresMined + " " + oreLabel + ".");
+                    finishMining();
                 }
                 return;
             }
             scanForOres();
             if (targets.isEmpty()) {
-                String oreLabel = targetOre != null ? targetOre.name + " ore" : "ores";
+                String oreLabel = targetOre != null ? com.apocscode.mcai.ai.PlayerReplies.resource(targetOre.name) : "руда";
                 if (oresMined == 0) {
-                    say("No " + oreLabel + " found nearby.");
-                    fail("No " + oreLabel + " found within " + radius + " blocks");
+                    say("Не найдено: " + oreLabel + " рядом.");
+                    fail("Не найдено: " + oreLabel + "; радиус поиска: " + radius + " блоков");
                 } else {
-                    say("No more " + oreLabel + " found. Mined " + oresMined + " total.");
-                    complete();
+                    say("Больше не найдено: " + oreLabel + "; добыто: " + oresMined + " всего.");
+                    finishMining();
                 }
                 return;
             }
@@ -186,23 +191,23 @@ public class MineOresTask extends CompanionTask {
                 if (consecutiveSkips >= MAX_CONSECUTIVE_SKIPS) {
                     OreGuide.Ore ore = OreGuide.identifyOre(targetState);
                     String tierHint = ore != null
-                            ? " Need " + ore.tierName() + " pickaxe or better."
-                            : " Need a better pickaxe.";
-                    say("I don't have the right tools to mine these ores." + tierHint);
-                    fail("Wrong pickaxe tier" + tierHint);
+                            ? " Нужна кирка уровня " + ore.tierName() + " или выше."
+                            : " Нужна кирка уровня a better pickaxe.";
+                    say("Нет подходящей кирки для этой руды." + tierHint);
+                    fail("Недостаточный уровень кирки" + tierHint);
                     return;
                 }
                 return;
             }
             companion.equipBestToolForBlock(targetState);
-            BlockHelper.breakBlock(companion, currentTarget);
+            boolean broken = BlockHelper.breakBlock(companion, currentTarget);
             // Handle falling blocks (gravel/sand) above the mined ore
             handleFallingBlocks(currentTarget.above());
             targets.poll();
             currentTarget = null;
             stuckTimer = 0;
             consecutiveSkips = 0;
-            oresMined++;
+            if (broken) oresMined++;
         } else {
             navigateTo(currentTarget);
             stuckTimer++;
@@ -222,11 +227,11 @@ public class MineOresTask extends CompanionTask {
                 consecutiveSkips++;
                 if (consecutiveSkips >= MAX_CONSECUTIVE_SKIPS) {
                     if (oresMined == 0) {
-                        say("Can't reach any ores.");
-                        fail("Could not reach any ore blocks");
+                        say("Не могу добраться до руды.");
+                        fail("Не удалось добраться до руды");
                     } else {
-                        say("Can't reach any more ores. Mined " + oresMined + ".");
-                        complete();
+                        say("Оставшаяся руда недоступна. Добыто: " + oresMined + ".");
+                        finishMining();
                     }
                     return;
                 }

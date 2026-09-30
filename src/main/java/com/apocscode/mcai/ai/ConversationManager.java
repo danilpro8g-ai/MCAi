@@ -45,7 +45,9 @@ public class ConversationManager {
     }
 
     public static List<ChatMessage> getMessages() {
-        return Collections.unmodifiableList(messages);
+        return messages.stream().filter(m -> !m.content().startsWith("[Command parsed locally")
+                && !m.content().startsWith("[Tool result:") && !m.content().startsWith("[Task")
+                && !(m.isPlayer() && m.content().contains(": {\""))).toList();
     }
 
     /**

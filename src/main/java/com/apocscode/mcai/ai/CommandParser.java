@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
  * Returns true if the command was handled locally, false to fall through to AI.
  */
 public class CommandParser {
+    private static final Map<java.util.UUID, RussianCommands.Session> russianSessions = new java.util.WeakHashMap<>();
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "MCAi-CommandParser");
@@ -883,6 +884,26 @@ public class CommandParser {
     public static boolean tryParse(String message, ServerPlayer player, @Nullable CompanionEntity companion) {
         if (message == null || message.isBlank()) return false;
 
+        String quick = RussianCommands.quick(message);
+        if (quick != null && companion != null) {
+            respond(player, com.apocscode.mcai.network.ChatMessageHandler.handleQuickCommand(quick, companion, player));
+            return true;
+        }
+        RussianCommands.Gather gather = russianSessions.computeIfAbsent(player.getUUID(), id -> new RussianCommands.Session()).parse(message, System.currentTimeMillis());
+        if (gather != null) {
+            if (gather.error() != null) {
+                respond(player, gather.error());
+            } else {
+                JsonObject args = new JsonObject();
+                args.addProperty(gather.resourceKey(), gather.block());
+                args.addProperty(gather.countKey(), gather.count());
+                args.addProperty("additional", true);
+                executeToolAsync(gather.tool(), args, player, companion,
+                    "Принято: добыть " + gather.count() + " блоков выбранного ресурса.");
+            }
+            return true;
+        }
+
         // Normalize: trim, collapse whitespace, strip trailing punctuation
         String msg = message.trim()
                 .replaceAll("\\s+", " ")
@@ -1399,7 +1420,7 @@ public class CommandParser {
             }
             JsonObject args = new JsonObject();
             args.addProperty("block", normalizeItemName(blockStr));
-            if (countStr != null) args.addProperty("count", Integer.parseInt(countStr));
+            if (countStr != null) args.addProperty("maxBlocks", Integer.parseInt(countStr));
             executeToolAsync("gather_blocks", args, player, companion,
                     "Gathering " + blockStr + "...");
             return true;
@@ -1893,11 +1914,6 @@ public class CommandParser {
             companion.getChat().say(com.apocscode.mcai.entity.CompanionChat.Category.TASK, workingMessage);
         }
 
-        // Add to conversation history so AI has context of what happened
-        ConversationManager.addPlayerMessage(player.getName().getString() + ": " +
-                args.toString());
-        ConversationManager.addSystemMessage("[Command parsed locally → " + toolName + "(" + args + ")]");
-
         MCAi.LOGGER.info("CommandParser: executing {} with args {} (bypassing AI)", toolName, args);
         AiLogger.toolCall(toolName, args.toString());
 
@@ -1912,28 +1928,13 @@ public class CommandParser {
                 AiLogger.toolResult(toolName, result, elapsed);
                 MCAi.LOGGER.info("CommandParser: {} completed in {}ms", toolName, elapsed);
 
-                // Add result to conversation history
-                ConversationManager.addSystemMessage("[Tool result: " + (result != null ? result : "done") + "]");
-
-                // Send result to player
-                if (result != null && !result.contains("[ASYNC_TASK]")) {
-                    String cleanResult = result.trim();
-                    if (!cleanResult.isEmpty()) {
-                        player.getServer().execute(() ->
-                                PacketDistributor.sendToPlayer(player, new ChatResponsePacket(cleanResult)));
-                    }
-                } else if (result != null) {
-                    String cleanResult = result.replaceAll("\\[ASYNC_TASK]", "").trim();
-                    if (!cleanResult.isEmpty()) {
-                        player.getServer().execute(() ->
-                                PacketDistributor.sendToPlayer(player, new ChatResponsePacket(cleanResult)));
-                    }
-                }
+                String reply = com.apocscode.mcai.ai.PlayerReplies.toolResult(result);
+                player.getServer().execute(() -> PacketDistributor.sendToPlayer(player, new ChatResponsePacket(reply)));
             } catch (Exception e) {
                 MCAi.LOGGER.error("CommandParser: {} failed: {}", toolName, e.getMessage(), e);
                 player.getServer().execute(() ->
                         PacketDistributor.sendToPlayer(player, new ChatResponsePacket(
-                                "Hmm, that didn't work: " + e.getMessage())));
+                                "Не удалось выполнить команду. Подробности записаны в журнал MCAi.")));
             }
         });
     }

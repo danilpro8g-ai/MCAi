@@ -70,7 +70,7 @@ public class ChopTreesTool implements AiTool {
                 String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getPath();
                 return id.contains("log") || id.contains("wood") || id.contains("stem") || id.contains("hyphae");
             });
-            if (logsHave >= maxLogs) {
+            if (logsHave >= maxLogs && !(args.has("additional") && args.get("additional").getAsBoolean())) {
                 MCAi.LOGGER.info("ChopTrees: SKIPPING — already have {} logs in inventory+storage (need {})", logsHave, maxLogs);
                 return "Already have " + logsHave + " logs in inventory/storage (need " + maxLogs +
                         "). Skipping chop — proceed to next step.";

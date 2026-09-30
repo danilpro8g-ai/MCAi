@@ -108,6 +108,9 @@ public class MineOresTool implements AiTool {
                 if (targetOre.minTier > 0) {
                     int companionTier = getCompanionPickaxeTier(companion);
                     if (companionTier < targetOre.minTier) {
+                        if (args.has("confirmedIntent") && args.get("confirmedIntent").getAsBoolean()) {
+                            return "Для этой руды нужна кирка лучшего уровня. Дай спутнику подходящую кирку и повтори команду.";
+                        }
                         String neededPick = getPickaxeForTier(targetOre.minTier);
                         String planText = "mine_ores({\"ore\":\"" + targetOre.name + "\",\"radius\":" + radius +
                                 ",\"maxOres\":" + maxOres + "})";
@@ -169,7 +172,7 @@ public class MineOresTool implements AiTool {
             // because the plan's total requirement may be higher than maxOres.
             // The craft plan already calculated exact needs — trust it.
             boolean hasPlan = args.has("plan") && !args.get("plan").getAsString().isBlank();
-            if (targetOre != null && !hasPlan) {
+            if (targetOre != null && !hasPlan && !(args.has("additional") && args.get("additional").getAsBoolean())) {
                 net.minecraft.world.item.Item dropItem = resolveOreDrop(targetOre.name);
                 if (dropItem != null) {
                     int have = BlockHelper.countItem(companion, dropItem);
